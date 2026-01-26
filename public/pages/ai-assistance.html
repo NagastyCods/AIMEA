@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AIMEA Medical Assistant</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+</head>
+
+<body>
+
+     <header>
+        <div class="logo">AI<span>MEA</span></div>
+        
+        <nav class="nav-menu">
+            <a href="../index.html">Home</a>
+            <a href="../index.html#features">Features</a>
+            <a href="ai-assistance.html">AI Chat</a>
+            <a href="#" class="emergency-link">Emergency</a>
+            <a href="contact.html">Contact</a>
+        </nav>
+
+        <div class="nav-toggle">
+            <span></span><span></span><span></span>
+        </div>
+
+        <div class="mode-switch"><i class="fa-solid fa-moon"></i></div>
+    </header>
+
+    <div id="alert-banner" class="critical-banner" style="display:none;">
+        🚨 Critical Issue Detected — AI Prioritizing Emergency Response
+    </div>
+
+    <div class="chat-container">
+        <div id="chat-box" class="chat-box"></div>
+
+        <div class="input-area">
+            <!-- upload image -->
+            <label for="imageInput" class="icon-btn">
+                <i class="fa-solid fa-image"></i>
+            </label>
+            <input type="file" id="imageInput" accept="image/*" hidden>
+            <!-- take a picture -->
+            <label for="cameraInput" class="icon-btn">
+                <i class="fa-solid fa-camera"></i>
+            </label>
+            <input id="chat-input" type="text" placeholder="Describe your emergency..." onkeypress="keySend(event)">
+            <button type="button" class="speaker"><i class="fa-solid fa-microphone"></i></button>
+            <button class="send-btn" onclick="sendChat()">Send</button>
+        </div>
+    </div>
+
+    <!-- footer -->
+
+    <footer>
+        <p>© 2025 AIMEA — AI MEDICAL EMERGENCY ASSISTANT</p>
+    </footer>
+
+    <script src="../js/script.js"></script>
+</body>
+</html>
