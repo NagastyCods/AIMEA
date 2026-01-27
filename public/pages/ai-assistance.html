@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <title>AIMEA Medical Assistant</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="../css/style.css">
+    <!-- <link rel="stylesheet" href="../css/style.css"> -->
+    <link rel="stylesheet" href="../css/style2.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -37,7 +38,10 @@
 
     <div class="chat-container">
         <div id="chat-box" class="chat-box"></div>
-
+        <div class="image-preview hidden" id="imagePreview">
+            <img id="previewImg" src="" alt="Image Preview">
+            <button onclick="removeImage()">&times;</button>
+        </div>
         <div class="input-area">
             <!-- upload image -->
             <label for="imageInput" class="icon-btn">
@@ -48,9 +52,9 @@
             <label for="cameraInput" class="icon-btn">
                 <i class="fa-solid fa-camera"></i>
             </label>
-            <input id="chat-input" type="text" placeholder="Describe your emergency..." onkeypress="keySend(event)">
+            <input id="chat-input" type="text" placeholder="Describe your emergency...">
             <button type="button" class="speaker"><i class="fa-solid fa-microphone"></i></button>
-            <button class="send-btn" onclick="sendChat()">Send</button>
+            <button class="send-btn">Send</button>
         </div>
     </div>
 
@@ -60,6 +64,7 @@
         <p>© 2025 AIMEA — AI MEDICAL EMERGENCY ASSISTANT</p>
     </footer>
 
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
     <script src="../js/script.js"></script>
 </body>
 </html>

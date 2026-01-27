@@ -1,40 +1,69 @@
-import { openai} from "../config/openai.js";
+import fs from "fs";
+import { openai } from "../config/openai.js";
 
 export const aiMedicalAssistant = async (req, res) => {
-    try {
-        const { message } = req.body;
+  try {
+    const message = req.body.message;
+    const image = req.file;
 
-        if (!message) {
-            return res.status(400).json({ error: "Message is required" });
-        }
+    if (!message && !image) {
+      return res.status(400).json({
+        reply: "Please describe the emergency or send an image."
+      });
+    }
 
-        // AI Prompt
-        const prompt = `
-You are an AI medical emergency assistant. 
-Provide safe, calm, step-by-step medical guidance.
-Do NOT give diagnoses. Do NOT replace a doctor. 
-Keep responses simple, clear, and actionable.
-User message: ${message}
+    // SYSTEM SAFETY PROMPT (VERY IMPORTANT)
+    const systemPrompt = `
+You are AIMEA, an AI Medical Emergency Assistant.
+
+Rules:
+- Stay calm, reassuring, and clear
+- Provide step-by-step FIRST AID guidance
+- DO NOT diagnose diseases
+- DO NOT replace a doctor
+- If situation is life-threatening, advise calling emergency services immediately
+- Keep responses short and actionable
 `;
 
-        // OpenAI API call
-        const completion = await openai.chat.completions.create({
-            model: "gpt-4o-mini", 
-            messages: [
-                { role: "system", content: "You are a medical emergency assistant AI." },
-                { role: "user", content: prompt }
-            ],
-            temperature: 0.3
-        });
+    let input;
 
-        const reply = completion.choices[0].message.content;
+    if (image) {
+      const imageBuffer = fs.readFileSync(image.path);
+      const base64Image = imageBuffer.toString("base64");
 
-        return res.json({ reply });
-
-    } catch (error) {
-        console.error("AI ERROR:", error);
-        return res.status(500).json({
-            error: "AI processing failed",
-        });
+      input = [
+        {
+          role: "user",
+          content: [
+            { type: "input_text", text: message || "Analyze this emergency image." },
+            {
+              type: "input_image",
+              image_url: `data:image/jpeg;base64,${base64Image}`
+            }
+          ]
+        }
+      ];
+    } else {
+      input = message;
     }
+
+    const response = await openai.responses.create({
+      model: "gpt-4o-mini",
+      input,
+      temperature: 0.3,
+      instructions: systemPrompt
+    });
+
+    if (image) fs.unlinkSync(image.path);
+
+    res.json({
+      reply: response.output_text || "Please try again."
+    });
+
+  } catch (error) {
+    console.error("OPENAI ERROR:", error);
+    res.status(500).json({
+      reply: "AI service temporarily unavailable."
+    });
+  }
 };
