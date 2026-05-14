@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Emergency Medical Assistance</title>
+    <link rel="stylesheet" href="../css/style.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+</head>
+
+<body>
+    <!-- navigation -->
+    <header>
+        <div class="logo">AI<span>MEA</span></div>
+
+        <nav class="nav-menu">
+            <a href="../index.html">Home</a>
+            <a href="../index.html#features">Features</a>
+            <a href="ai-assistance.html">AI Chat</a>
+            <a href="sos.html" class="emergency-link">Emergency</a>
+            <a href="contact.html">Contact</a>
+        </nav>
+
+        <div class="nav-toggle">
+            <span></span><span></span><span></span>
+        </div>
+
+        <div class="mode-switch"><i class="fa-solid fa-moon"></i></div>
+    </header>
+
+    <section class="sos-page">
+        <div class="sos-hero">
+            <div class="hero-copy">
+                <span class="eyebrow">Emergency Response</span>
+                <h1>Fast AI Medical Assistance</h1>
+                <p>Activate support instantly, notify responders, and request ambulance dispatch directly from this dashboard.</p>
+            </div>
+            <div class="hero-status-card card">
+                <div class="status-title">Emergency Status</div>
+                <div id="statusBox" class="hero-status-value">Status: Inactive</div>
+                <p class="hero-status-note">Hold the SOS button for 3 seconds to alert your emergency team.</p>
+            </div>
+        </div>
+
+        <div class="sos-grid">
+            <div class="action-card card">
+                <h2>Quick Action Center</h2>
+                <p class="card-text">Immediate support is one tap away.</p>
+                <button id="emergencyBtn" class="emergency-btn">HOLD 3 SECONDS TO ACTIVATE</button>
+                <div class="quick-actions">
+                    <button id="ambulanceBtn" class="btn secondary">Request Ambulance</button>
+                    <a id="callTeamBtn" class="btn secondary" href="tel:911">Call Emergency Team</a>
+                </div>
+                <div class="info-block">
+                    <div class="info-label">Your Location</div>
+                    <p id="locationText">Not detected</p>
+                </div>
+            </div>
+
+            <div class="symptom-card card">
+                <div class="card-header">
+                    <h2>Select Symptoms</h2>
+                    <p class="card-text">Tell us what you are experiencing so responders understand the issue.</p>
+                </div>
+                <div class="symptom-box">
+                    <label><input type="checkbox" value="chest pain"> Chest Pain</label>
+                    <label><input type="checkbox" value="breathing difficulty"> Breathing Difficulty</label>
+                    <label><input type="checkbox" value="bleeding"> Severe Bleeding</label>
+                    <label><input type="checkbox" value="unconscious"> Unconscious</label>
+                    <label><input type="checkbox" value="burn"> Burn Injury</label>
+                    <label><input type="checkbox" value="fracture"> Suspected Fracture</label>
+                </div>
+                <button id="analyzeBtn" class="btn primary">Analyze Emergency</button>
+            </div>
+        </div>
+
+        <div class="result-grid">
+            <div class="result-card card">
+                <h3>AI Medical Assessment</h3>
+                <div id="aiResult" class="ai-result">The AI assessment will appear here once the incident is analyzed.</div>
+            </div>
+            <div class="result-card card">
+                <h3>First Aid Guidance</h3>
+                <div id="firstAidBox" class="first-aid-box">First aid instructions will load here to help you stabilize the situation.</div>
+            </div>
+        </div>
+
+        <div class="history-card card">
+            <div class="history-header">
+                <h2>Emergency History</h2>
+                <p>Recent incident summaries are displayed here for quick review.</p>
+            </div>
+            <ul id="historyList" class="history-list"></ul>
+        </div>
+    </section>
+
+    <!-- footer -->
+     <footer>
+        <p>© 2026 AIMEA — AI MEDICAL EMERGENCY ASSISTANT</p>
+    </footer>
+
+    <script src="../js/sos.js"></script>
+    <script src="../js/script.js"></script>
+</body>
+
+</html>

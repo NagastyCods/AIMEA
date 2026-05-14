@@ -13,8 +13,7 @@ export const aiMedicalAssistant = async (req, res) => {
     }
 
     // SYSTEM SAFETY PROMPT (VERY IMPORTANT)
-    const systemPrompt = `
-You are AIMEA, an AI Medical Emergency Assistant.
+    const systemPrompt = `You are AIMEA, an AI Medical Emergency Assistant.
 
 Rules:
 - Stay calm, reassuring, and clear
@@ -22,42 +21,41 @@ Rules:
 - DO NOT diagnose diseases
 - DO NOT replace a doctor
 - If situation is life-threatening, advise calling emergency services immediately
-- Keep responses short and actionable
-`;
+- Keep responses short and actionable`;
 
-    let input;
+    let content;
 
     if (image) {
       const imageBuffer = fs.readFileSync(image.path);
       const base64Image = imageBuffer.toString("base64");
 
-      input = [
+      content = [
+        { type: "text", text: message || "Analyze this emergency image." },
         {
-          role: "user",
-          content: [
-            { type: "input_text", text: message || "Analyze this emergency image." },
-            {
-              type: "input_image",
-              image_url: `data:image/jpeg;base64,${base64Image}`
-            }
-          ]
+          type: "image_url",
+          image_url: {
+            url: `data:image/jpeg;base64,${base64Image}`
+          }
         }
       ];
     } else {
-      input = message;
+      content = message;
     }
 
-    const response = await openai.responses.create({
+    const response = await openai.chat.completions.create({
       model: "gpt-4o-mini",
-      input,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: content }
+      ],
       temperature: 0.3,
-      instructions: systemPrompt
+      max_tokens: 500
     });
 
     if (image) fs.unlinkSync(image.path);
 
     res.json({
-      reply: response.output_text || "Please try again."
+      reply: response.choices[0].message.content || "Please try again."
     });
 
   } catch (error) {

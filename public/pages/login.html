@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">'
+    <link rel="stylesheet" href="../css/style.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <title>Login</title>
+</head>
+<body>
+    <header>
+        <div class="logo">AI<span>MEA</span></div>
+        
+        <nav class="nav-menu">
+            <a href="../index.html">Home</a>
+            <a href="ai-assistance.html">AI Chat</a>
+            <a href="sos.html" class="emergency-link">Emergency</a>
+            <a href="dashboard.html">Dashboard</a>
+            <a href="contact.html">Contact</a>
+        </nav>
+
+        <div class="nav-toggle">
+            <span></span><span></span><span></span>
+        </div>
+
+        <div class="mode-switch"><i class="fa-solid fa-moon"></i></div>
+    </header>
+	<div class="auth-container">
+		<form id="loginForm" class="auth-form">
+			<h2>Login</h2>
+			<div class="input-group">
+				<label for="login-username">Username or Email</label>
+				<input type="text" id="login-username" name="username" required>
+			</div>
+			<div class="input-group">
+				<label for="login-password">Password</label>
+				<input type="password" id="login-password" name="password" required>
+			</div>
+			<button type="submit" class="btn">Sign In</button>
+			<p class="switch-link">Don't have an account? <a href="register.html">Register</a></p>
+			<div id="login-error" class="error-message" style="display:none;"></div>
+		</form>
+	</div>
+
+    <!-- footer -->
+     <footer>
+        <p>© 2026 AIMEA — AI MEDICAL EMERGENCY ASSISTANT</p>
+    </footer>
+    <script src="../js/script.js"></script>
+</body>
+</html>

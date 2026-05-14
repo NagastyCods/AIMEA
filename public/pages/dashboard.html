@@ -1,59 +1,133 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="../css/style.css">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard | AIMEA</title>
+    <link rel="stylesheet" href="../css/style.css" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <title>Admin Dashboard</title>
 </head>
 <body>
-    <div class="admin-layout">
-        <aside class="sidebar">
-            <div class="logo">AIMEA Admin</div>
-            <nav class="sidebar-menu">
-                <a href="dashboard.html" class="active"><i class="fa-solid fa-gauge"></i> Dashboard</a>
-                <a href="user-management.html"><i class="fa-solid fa-users"></i> SOS Alerts</a>
-                <a href="reports.html"><i class="fa-solid fa-file-alt"></i> Users</a>
-                <a href="settings.html"><i class="fa-solid fa-cog"></i>Hospitals</a>
-                <a href="../index.html"><i class="fa-solid fa-sign-out-alt"></i> Logout</a>
-            </nav>
-        </aside>
-        <main class="main-content">
-            <header class="admin-header">
-                <h1>Dashboard</h1>
-                <div class="admin-actions">
-                    <button class="notification-btn"><i class="fa-solid fa-bell"></i></button>
-                    <div class="admin-profile">
-                        <img src="../images/admin-avatar.png" alt="Admin Avatar">
-                        <span>Admin</span>
+    <!-- NAVIGATION -->
+    <header>
+        <div class="logo">AI<span>MEA</span></div>
+        <nav class="nav-menu">
+            <a href="../index.html">Home</a>
+            <a href="ai-assistance.html">AI Chat</a>
+            <a href="sos.html" class="emergency-link">Emergency</a>
+            <a href="contact.html">Contact</a>
+            <a href="#">Dashboard</a>
+        </nav>
+        <div class="nav-toggle">
+            <span></span><span></span><span></span>
+        </div>
+        <div class="mode-switch"><i class="fa-solid fa-moon"></i></div>
+    </header>
+
+    <main class="dashboard-main">
+        <section class="dashboard-hero">
+            <div>
+                <p class="section-label">Control Center</p>
+                <h1>Emergency Alert Management</h1>
+                <p>Monitor incoming requests instantly, manage response priorities, and keep your account details in one place.</p>
+            </div>
+            <div class="hero-actions">
+                <button class="btn btn-primary" id="refresh-emergencies">Refresh Alerts</button>
+                <button class="btn btn-outline" id="logoutBtn">Logout</button>
+            </div>
+        </section>
+
+        <section class="dashboard-grid">
+            <div class="card emergency-card scroll-reveal">
+                <div class="card-header">
+                    <h2>Live Emergency Notifications</h2>
+                    <span id="emergency-counter" class="status-pill critical">0 active</span>
+                </div>
+                <div class="alerts-summary">
+                    <div class="summary-pill critical"><span></span>Critical</div>
+                    <div class="summary-pill high"><span></span>High</div>
+                    <div class="summary-pill medium"><span></span>Medium</div>
+                    <div class="summary-pill low"><span></span>Low</div>
+                </div>
+                <div id="emergency-list" class="emergency-list"></div>
+                <div class="map-card">
+                    <div class="map-header">
+                        <div>
+                            <h3>Patient Live Location</h3>
+                            <p id="map-status">Map pinned to the most recent alert.</p>
+                        </div>
+                        <span class="status-pill ambulance">Ambulance tracking</span>
+                    </div>
+                    <div id="map-placeholder" class="map-placeholder">
+                        <div class="map-pin">📍</div>
+                        <div class="map-text">
+                            <strong>Awaiting active case...</strong>
+                            <p>Accepted emergencies show live tracking details here.</p>
+                        </div>
                     </div>
                 </div>
-            </header>
-
-            <section class="dashboard-overview">
-                <div class="overview-cards">
-                    <div class="card">
-                        <h3>Total Users</h3>
-                        <p>1,234</p>
+            </div>
+            <div class="card ai-card scroll-reveal">
+                <div class="card-header">
+                    <h2>AI Symptom Analysis</h2>
+                </div>
+                <form id="symptom-form" class="symptom-form">
+                    <label for="symptoms-input">Describe symptoms or emergency signs</label>
+                    <textarea id="symptoms-input" rows="4" placeholder="e.g. chest pain, sweating, dizziness"></textarea>
+                    <div class="form-row">
+                        <button class="btn btn-primary" type="submit">Analyze Symptoms</button>
+                        <button class="btn btn-outline" type="button" id="voice-btn"><i class="fa-solid fa-microphone"></i> Voice Input</button>
                     </div>
-                    <div class="card">
-                        <h3>Active Alerts</h3>
-                        <p>56</p>
+                    <label for="imageInput">Upload injury image</label>
+                    <input id="imageInput" type="file" accept="image/*" />
+                    <div id="imagePreview" class="image-preview hidden">
+                        <img id="previewImg" alt="Preview image" />
+                        <button type="button" class="remove-image-btn">Remove</button>
                     </div>
-                    <div class="card">
-                        <h3>Hospitals Connected</h3>
-                        <p>12</p>
+                </form>
+                <div id="ai-result" class="ai-result">
+                    <h3>Analysis Output</h3>
+                    <div id="analysis-output" class="analysis-output">
+                        Enter symptoms or upload an image and the AI will provide probable condition, severity and first-aid guidance.
                     </div>
                 </div>
-            </section>
+            </div>
+            <aside class="card settings-card scroll-reveal">
+                <div class="card-header">
+                    <h2>Settings</h2>
+                </div>
+                <p class="small-text">Update account details, secure your access, and sign out safely.</p>
+                <form id="settings-form" class="settings-form">
+                    <label for="settings-username">Username</label>
+                    <input id="settings-username" type="text" placeholder="Username" required />
+                    <label for="settings-email">Email</label>
+                    <input id="settings-email" type="email" placeholder="Email" required />
+                    <label for="settings-password">New Password <span>(optional)</span></label>
+                    <input id="settings-password" type="password" placeholder="Leave blank to keep current password" />
+                    <div class="form-row settings-actions">
+                        <button class="btn btn-primary" type="submit">Save changes</button>
+                        <button class="btn btn-outline" type="button" id="logout-secondary-btn">Logout</button>
+                    </div>
+                </form>
+                <div id="settings-message" class="notification-message"></div>
+                <div class="user-status-card">
+                    <div>
+                        <span class="status-dot active"></span>
+                        <strong id="user-status">Checking profile...</strong>
+                    </div>
+                </div>
+            </aside>
+        </section>
+    </main>
 
-            <section class="dashboard-details">
-                <!-- Additional dashboard details and charts can be added here -->
-            </section>
-    </div>
+    <footer>
+        <p>© 2026 AIMEA — AI MEDICAL EMERGENCY ASSISTANT</p>
+    </footer>
+
+    <script src="../js/script.js"></script>
+    <script src="../js/dashboard.js"></script>
 </body>
 </html>
