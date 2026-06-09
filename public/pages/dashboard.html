@@ -120,6 +120,29 @@
                     </div>
                 </div>
             </aside>
+
+            <div class="card nearest-hospitals-card scroll-reveal dashboard-full-span" data-nearest-hospitals>
+                <div class="card-header">
+                    <h2>Nearest hospitals</h2>
+                    <span class="status-pill low">OpenStreetMap</span>
+                </div>
+                <p class="small-text">Use your location to list nearby hospitals and clinics. Call, SMS, or email when contact details exist in open data.</p>
+                <div class="hospitals-toolbar">
+                    <label class="hospitals-radius-label">
+                        <span>Search radius</span>
+                        <select data-hospitals-radius class="hospitals-radius-select" aria-label="Search radius in kilometers">
+                            <option value="5000">5 km</option>
+                            <option value="10000" selected>10 km</option>
+                            <option value="15000">15 km</option>
+                            <option value="20000">20 km</option>
+                            <option value="25000">25 km</option>
+                        </select>
+                    </label>
+                    <button type="button" class="btn btn-primary" data-hospitals-find>Find nearest hospitals</button>
+                </div>
+                <p class="hospitals-status" data-hospitals-status role="status"></p>
+                <div class="hospitals-list" data-hospitals-list></div>
+            </div>
         </section>
     </main>
 
@@ -129,5 +152,6 @@
 
     <script src="../js/script.js"></script>
     <script src="../js/dashboard.js"></script>
+    <script src="../js/nearest-hospitals.js"></script>
 </body>
 </html>

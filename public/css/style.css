@@ -1053,6 +1053,9 @@ body.dark-mode footer {
     grid-template-columns: 2fr 1fr;
     gap: 24px;
 }
+.dashboard-full-span {
+    grid-column: 1 / -1;
+}
 .card {
     background: #fff;
     border-radius: 24px;
@@ -1321,6 +1324,188 @@ body.dark-mode .settings-card .settings-form input {
     .settings-card .form-row,
     .hero-actions {
         flex-direction: column;
+    }
+}
+
+/* Nearest hospitals (dashboard + SOS) */
+.nearest-hospitals-card .hospitals-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+.hospitals-radius-label {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #374151;
+}
+body.dark-mode .hospitals-radius-label {
+    color: #cbd5e1;
+}
+.hospitals-radius-select {
+    min-width: 120px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    border: 1px solid #d7dfe8;
+    background: #fff;
+    color: #111;
+    font-size: 0.95rem;
+}
+body.dark-mode .hospitals-radius-select {
+    background: #1f2430;
+    border-color: #3b3f52;
+    color: #fff;
+}
+.hospitals-status {
+    min-height: 1.25em;
+    margin: 0 0 16px;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: #4b5563;
+}
+body.dark-mode .hospitals-status {
+    color: #94a3b8;
+}
+.hospitals-status.is-loading {
+    color: #0d47a1;
+}
+.hospitals-status.is-ok {
+    color: #1b5e20;
+}
+.hospitals-status.is-warn {
+    color: #b45309;
+}
+.hospitals-status.is-error {
+    color: #b91c1c;
+}
+.hospitals-list {
+    display: grid;
+    gap: 14px;
+}
+.hospitals-empty {
+    margin: 0;
+    color: #6b7280;
+}
+body.dark-mode .hospitals-empty {
+    color: #9ca3af;
+}
+.hospital-card {
+    border: 1px solid #e5e9f1;
+    border-radius: 18px;
+    padding: 18px 20px;
+    background: #fbfdff;
+}
+body.dark-mode .hospital-card {
+    background: #252a38;
+    border-color: #3b3f52;
+}
+.hospital-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+.hospital-name {
+    margin: 0;
+    font-size: 1.1rem;
+    font-family: 'Poppins', sans-serif;
+    color: #0f172a;
+}
+body.dark-mode .hospital-name {
+    color: #f1f5f9;
+}
+.hospital-distance {
+    flex-shrink: 0;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: #0b57d0;
+    background: #e8f0fe;
+    padding: 6px 12px;
+    border-radius: 999px;
+}
+body.dark-mode .hospital-distance {
+    color: #93c5fd;
+    background: #1e3a5f;
+}
+.hospital-type {
+    margin: 0 0 8px;
+    font-size: 0.85rem;
+    text-transform: capitalize;
+    color: #64748b;
+}
+.hospital-address,
+.hospital-phone {
+    margin: 0 0 8px;
+    font-size: 0.95rem;
+    line-height: 1.55;
+    color: #475569;
+}
+body.dark-mode .hospital-address,
+body.dark-mode .hospital-phone {
+    color: #94a3b8;
+}
+.hospital-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 14px;
+}
+.hospital-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    text-decoration: none;
+    color: #0d47a1;
+    background: #eef4ff;
+    border: 1px solid rgba(13, 71, 161, 0.15);
+    transition: background 0.2s ease, color 0.2s ease;
+}
+.hospital-action:hover {
+    background: #0d47a1;
+    color: #fff;
+}
+body.dark-mode .hospital-action {
+    color: #bfdbfe;
+    background: #1e293b;
+    border-color: #334155;
+}
+body.dark-mode .hospital-action:hover {
+    background: #2563eb;
+    color: #fff;
+}
+.hospital-action.muted {
+    cursor: default;
+    font-weight: 500;
+    color: #9ca3af;
+    background: #f3f4f6;
+    border-color: #e5e7eb;
+}
+body.dark-mode .hospital-action.muted {
+    color: #6b7280;
+    background: #1f2937;
+    border-color: #374151;
+}
+.sos-hospitals-block {
+    margin-bottom: 30px;
+}
+
+@media (max-width: 600px) {
+    .nearest-hospitals-card .hospitals-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .nearest-hospitals-card .hospitals-toolbar .btn {
+        width: 100%;
+        text-align: center;
     }
 }
 

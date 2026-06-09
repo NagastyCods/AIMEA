@@ -37,26 +37,59 @@
         🚨 Critical Issue Detected — AI Prioritizing Emergency Response
     </div>
 
-    <div class="chat-container">
-        <div id="chat-box" class="chat-box"></div>
-        <div class="image-preview hidden" id="imagePreview">
-            <img id="previewImg" src="" alt="Image Preview">
-            <button onclick="removeImage()">&times;</button>
-        </div>
-        <div class="input-area">
-            <!-- upload image -->
-            <label for="imageInput" class="icon-btn">
-                <i class="fa-solid fa-image"></i>
-            </label>
-            <input type="file" id="imageInput" accept="image/*" hidden>
-            <!-- take a picture -->
-            <label for="cameraInput" class="icon-btn">
-                <i class="fa-solid fa-camera"></i>
-            </label>
-            <input id="chat-input" type="text" placeholder="Describe your emergency...">
-            <button type="button" class="speaker"><i class="fa-solid fa-microphone"></i></button>
-            <button class="send-btn">Send</button>
-        </div>
+    <div class="chat-page">
+        <aside class="history-panel mobile-hidden" id="historyPanel">
+            <div class="history-header">
+                <div>
+                    <h2>Chat History</h2>
+                    <p class="history-desc">Tap an item to reopen a conversation or start a new one.</p>
+                </div>
+                <div class="history-actions">
+                    <button type="button" class="history-btn new-chat-btn" id="newChatBtn">
+                        <i class="fa-solid fa-plus"></i>
+                        New Chat
+                    </button>
+                    <button type="button" class="history-toggle" id="historyToggle">Show</button>
+                </div>
+            </div>
+            <div id="history-list" class="history-list">
+                <p class="history-empty">No previous chats yet. Start a new conversation.</p>
+            </div>
+        </aside>
+
+        <section class="chat-main">
+            <div class="mobile-actions">
+                <button type="button" class="history-btn" id="showHistoryMobileBtn">
+                    <i class="fa-solid fa-list"></i>
+                    History
+                </button>
+                <button type="button" class="history-btn" id="newChatMobileBtn">
+                    <i class="fa-solid fa-plus"></i>
+                    New Chat
+                </button>
+            </div>
+            <div class="chat-container">
+                <div id="chat-box" class="chat-box"></div>
+                <div class="image-preview hidden" id="imagePreview">
+                    <img id="previewImg" src="" alt="Image Preview">
+                    <button onclick="removeImage()">&times;</button>
+                </div>
+                <div class="input-area">
+                    <!-- upload image -->
+                    <label for="imageInput" class="icon-btn">
+                        <i class="fa-solid fa-image"></i>
+                    </label>
+                    <input type="file" id="imageInput" accept="image/*" hidden>
+                    <!-- take a picture -->
+                    <label for="cameraInput" class="icon-btn">
+                        <i class="fa-solid fa-camera"></i>
+                    </label>
+                    <input id="chat-input" type="text" placeholder="Describe your emergency...">
+                    <button type="button" class="speaker"><i class="fa-solid fa-microphone"></i></button>
+                    <button class="send-btn">Send</button>
+                </div>
+            </div>
+        </section>
     </div>
 
     <!-- footer -->

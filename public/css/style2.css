@@ -248,6 +248,197 @@ header {
   background: var(--primary-dark);
 }
 
+.chat-page {
+  flex: 1;
+  display: flex;
+  gap: 20px;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 15px;
+  align-items: stretch;
+}
+
+.history-panel {
+  width: 320px;
+  min-width: 280px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  max-height: calc(100vh - 140px);
+}
+
+.history-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.history-header h2 {
+  font-size: 1rem;
+  margin: 0;
+}
+
+.history-desc {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.history-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.history-btn {
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+  transition: all .2s ease;
+}
+
+.mobile-actions {
+  display: none;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.mobile-actions .history-btn {
+  flex: 1;
+  justify-content: center;
+}
+
+.history-btn:hover {
+  border-color: var(--primary);
+  background: rgba(30, 136, 229, 0.08);
+}
+
+.new-chat-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+}
+
+.history-toggle {
+  display: none;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  background: transparent;
+  border-radius: 10px;
+  cursor: pointer;
+  color: var(--text);
+}
+
+.history-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+  display: grid;
+  gap: 10px;
+}
+
+.history-item {
+  padding: 14px;
+  border-radius: 16px;
+  background: var(--bg);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all .2s ease;
+}
+
+.history-item:hover,
+.history-item.active {
+  border-color: var(--primary);
+  background: rgba(30, 136, 229, 0.08);
+}
+
+.history-item h3 {
+  margin: 0 0 6px;
+  font-size: 0.95rem;
+  color: var(--text);
+}
+
+.history-item p,
+.history-item time {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.history-empty {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.chat-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 140px);
+}
+
+.chat-container {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 15px 0 0;
+}
+
+@media (max-width: 1024px) {
+  .chat-page {
+    padding: 12px;
+  }
+}
+
+@media (max-width: 900px) {
+  .chat-page {
+    flex-direction: column;
+  }
+
+  .history-panel {
+    width: 100%;
+    max-height: none;
+    order: 1;
+  }
+
+  .history-toggle {
+    display: inline-flex;
+  }
+
+  .mobile-actions {
+    display: flex;
+  }
+
+  .history-actions {
+    display: none;
+  }
+
+  .history-panel.mobile-hidden {
+    display: none;
+  }
+
+  .chat-container {
+    padding-top: 0;
+  }
+}
+
 /* =========================
    FOOTER
 ========================= */

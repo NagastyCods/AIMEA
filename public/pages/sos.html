@@ -19,8 +19,8 @@
 
         <nav class="nav-menu">
             <a href="../index.html">Home</a>
-            <a href="../index.html#features">Features</a>
             <a href="ai-assistance.html">AI Chat</a>
+            <a href="dashboard.html">Dashboard</a>
             <a href="sos.html" class="emergency-link">Emergency</a>
             <a href="contact.html">Contact</a>
         </nav>
@@ -64,7 +64,7 @@
             <div class="symptom-card card">
                 <div class="card-header">
                     <h2>Select Symptoms</h2>
-                    <p class="card-text">Tell us what you are experiencing so responders understand the issue.</p>
+                    <p class="card-text">Tell us what you are experiencing so responders will understand the issue correctly.</p>
                 </div>
                 <div class="symptom-box">
                     <label><input type="checkbox" value="chest pain"> Chest Pain</label>
@@ -76,6 +76,28 @@
                 </div>
                 <button id="analyzeBtn" class="btn primary">Analyze Emergency</button>
             </div>
+        </div>
+
+        <div class="card nearest-hospitals-card sos-hospitals-block" data-nearest-hospitals>
+            <div class="card-header">
+                <h2>Nearest hospitals</h2>
+            </div>
+            <p class="card-text">Find hospitals and clinics near you. Use call or SMS when a number is available; email appears when listed in map data.</p>
+            <div class="hospitals-toolbar">
+                <label class="hospitals-radius-label">
+                    <span>Radius</span>
+                    <select data-hospitals-radius class="hospitals-radius-select" aria-label="Search radius in kilometers">
+                        <option value="5000">5 km</option>
+                        <option value="10000" selected>10 km</option>
+                        <option value="15000">15 km</option>
+                        <option value="20000">20 km</option>
+                        <option value="25000">25 km</option>
+                    </select>
+                </label>
+                <button type="button" class="btn btn-primary" data-hospitals-find>Find nearest hospitals</button>
+            </div>
+            <p class="hospitals-status" data-hospitals-status role="status"></p>
+            <div class="hospitals-list" data-hospitals-list></div>
         </div>
 
         <div class="result-grid">
@@ -105,6 +127,7 @@
 
     <script src="../js/sos.js"></script>
     <script src="../js/script.js"></script>
+    <script src="../js/nearest-hospitals.js"></script>
 </body>
 
 </html>

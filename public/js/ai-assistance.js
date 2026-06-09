@@ -33,9 +33,186 @@ document.addEventListener('DOMContentLoaded', () => {
   const previewImg = document.getElementById('previewImg');
   const alertBanner = document.getElementById('alert-banner');
   const speakerBtn = document.querySelector('.speaker');
+  const historyPanel = document.getElementById('historyPanel');
+  const historyList = document.getElementById('history-list');
+  const historyToggle = document.getElementById('historyToggle');
 
   let selectedFile = null;
   let isListening = false;
+  let chatHistory = [];
+  let currentSession = null;
+
+  const getSessionTitle = (session) => {
+    const firstUser = session.messages?.find(msg => msg.role === 'user');
+    return firstUser ? firstUser.text.slice(0, 40) : session.title || 'AI Chat';
+  };
+
+  const formatSessionTime = (isoString) => {
+    return new Date(isoString).toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const renderSessionMessages = (session) => {
+    chatBox.innerHTML = '';
+    if (!session || !session.messages?.length) {
+      renderWelcomeMessage();
+      return;
+    }
+
+    session.messages.forEach((message) => {
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `chat-message ${message.role === 'user' ? 'user-message' : 'ai-message'}`;
+      messageDiv.innerHTML = `
+        <div class="message-content">
+          <p>${message.text}</p>
+          ${message.imageUrl ? `<img src="${message.imageUrl}" style="max-width: 200px; margin-top: 10px; border-radius: 8px;">` : ''}
+          <span class="message-time">${formatTime(new Date(message.createdAt))}</span>
+        </div>
+      `;
+      chatBox.appendChild(messageDiv);
+    });
+    chatBox.scrollTop = chatBox.scrollHeight;
+  };
+
+  const renderHistoryList = () => {
+    if (!historyList) return;
+
+    historyList.innerHTML = '';
+
+    if (!chatHistory.length) {
+      historyList.innerHTML = '<p class="history-empty">No previous chats yet. Start a new conversation.</p>';
+      return;
+    }
+
+    chatHistory.forEach((session) => {
+      const item = document.createElement('div');
+      item.className = 'history-item';
+      if (currentSession && session._id === currentSession._id) {
+        item.classList.add('active');
+      }
+      item.innerHTML = `
+        <h3>${getSessionTitle(session)}</h3>
+        <p>${session.messages?.length || 0} messages</p>
+        <time>${formatSessionTime(session.createdAt)}</time>
+      `;
+      item.addEventListener('click', async () => {
+        await loadSessionById(session._id);
+        if (window.innerWidth <= 900 && historyPanel) {
+          historyPanel.classList.add('mobile-hidden');
+          historyToggle.textContent = 'Show';
+        }
+      });
+      historyList.appendChild(item);
+    });
+  };
+
+  const syncHistorySession = (session) => {
+    const index = chatHistory.findIndex(item => item._id === session._id);
+    if (index !== -1) {
+      chatHistory[index] = session;
+    } else {
+      chatHistory.unshift(session);
+    }
+    currentSession = session;
+    renderHistoryList();
+  };
+
+  const loadSessionById = async (sessionId) => {
+    try {
+      const res = await fetch(`/api/chat-history/${sessionId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (!res.ok) throw new Error('Unable to load session');
+      const session = await res.json();
+      currentSession = session;
+      renderSessionMessages(session);
+      renderHistoryList();
+    } catch (error) {
+      console.error('Error loading session:', error);
+    }
+  };
+
+  const loadChatHistory = async () => {
+    try {
+      const res = await fetch('/api/chat-history', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (!res.ok) throw new Error('Failed to fetch chat history');
+      chatHistory = await res.json();
+      currentSession = chatHistory[0] || null;
+      renderHistoryList();
+      renderSessionMessages(currentSession);
+    } catch (error) {
+      console.error('Error loading chat history:', error);
+      renderWelcomeMessage();
+    }
+  };
+
+  const renderWelcomeMessage = () => {
+    const welcomeDiv = document.createElement('div');
+    welcomeDiv.className = 'chat-message ai-message';
+    welcomeDiv.innerHTML = `
+      <div class="message-content">
+        <p><strong>Welcome to AIMEA Medical Assistant!</strong></p>
+        <p>I'm here to help with first aid guidance. Describe your symptoms or upload an image for analysis.</p>
+        <p style="color: #ff4444; font-weight: bold;">⚠️ For life-threatening emergencies, call 911 immediately.</p>
+        <span class="message-time">${formatTime(new Date())}</span>
+      </div>
+    `;
+    chatBox.appendChild(welcomeDiv);
+    chatBox.scrollTop = chatBox.scrollHeight;
+  };
+
+  const newChatBtn = document.getElementById('newChatBtn');
+
+  const startNewChat = () => {
+    currentSession = null;
+    chatBox.innerHTML = '';
+    renderWelcomeMessage();
+    renderHistoryList();
+    if (window.innerWidth <= 900 && historyPanel) {
+      historyPanel.classList.add('mobile-hidden');
+      historyToggle.textContent = 'Show';
+    }
+  };
+
+  const showHistoryMobileBtn = document.getElementById('showHistoryMobileBtn');
+  const newChatMobileBtn = document.getElementById('newChatMobileBtn');
+
+  const toggleHistoryPanel = () => {
+    if (!historyPanel) return;
+    historyPanel.classList.toggle('mobile-hidden');
+    if (historyToggle) {
+      historyToggle.textContent = historyPanel.classList.contains('mobile-hidden') ? 'Show' : 'Hide';
+    }
+    if (showHistoryMobileBtn) {
+      showHistoryMobileBtn.textContent = historyPanel.classList.contains('mobile-hidden') ? 'History' : 'Hide History';
+    }
+  };
+
+  if (historyToggle && historyPanel) {
+    historyToggle.addEventListener('click', toggleHistoryPanel);
+  }
+
+  if (showHistoryMobileBtn) {
+    showHistoryMobileBtn.addEventListener('click', toggleHistoryPanel);
+  }
+
+  if (newChatBtn) {
+    newChatBtn.addEventListener('click', startNewChat);
+  }
+
+  if (newChatMobileBtn) {
+    newChatMobileBtn.addEventListener('click', startNewChat);
+  }
 
   // ============================================
   // IMAGE UPLOAD
@@ -85,7 +262,6 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
     `;
     chatBox.appendChild(userMessageDiv);
-    chatBox.scrollTop = chatBox.scrollHeight;
 
     // Disable send button
     sendBtn.disabled = true;
@@ -96,6 +272,9 @@ document.addEventListener('DOMContentLoaded', () => {
       formData.append('message', message);
       if (selectedFile) {
         formData.append('image', selectedFile);
+      }
+      if (currentSession && currentSession._id) {
+        formData.append('sessionId', currentSession._id);
       }
 
       const response = await fetch('/api/ai', {
@@ -129,6 +308,11 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       `;
       chatBox.appendChild(aiMessageDiv);
+
+      if (data.session) {
+        syncHistorySession(data.session);
+      }
+
       chatBox.scrollTop = chatBox.scrollHeight;
 
       // Clear inputs
@@ -225,19 +409,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ============================================
-  // WELCOME MESSAGE
+  // LOAD CHAT HISTORY
   // ============================================
-  const welcomeDiv = document.createElement('div');
-  welcomeDiv.className = 'chat-message ai-message';
-  welcomeDiv.innerHTML = `
-    <div class="message-content">
-      <p><strong>Welcome to AIMEA Medical Assistant!</strong></p>
-      <p>I'm here to help with first aid guidance. Describe your symptoms or upload an image for analysis.</p>
-      <p style="color: #ff4444; font-weight: bold;">⚠️ For life-threatening emergencies, call 911 immediately.</p>
-      <span class="message-time">${formatTime(new Date())}</span>
-    </div>
-  `;
-  chatBox.appendChild(welcomeDiv);
+  loadChatHistory();
 
   // ============================================
   // AUTO-HIDE ALERT BANNER

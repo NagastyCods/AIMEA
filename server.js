@@ -13,8 +13,8 @@ const __dirname = path.dirname(__filename);
 
 
 const app = express();
-const port = process.env.PORT || 5000;
-const mongoUrl = process.env.MONGODB_URI || '';
+const port = process.env.PORT;
+const mongoUrl = process.env.MONGODB_URI;
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));

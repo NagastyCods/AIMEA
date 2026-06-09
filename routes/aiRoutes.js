@@ -6,13 +6,67 @@ import bcrypt from 'bcrypt';
 import User from "../models/users.js";
 import EmergencyContact from "../models/emergencyContact.js";
 import EmergencyHistory from "../models/emergencyHistory.js";
+import ChatHistory from "../models/chatHistory.js";
 import { aiMedicalAssistant } from "../controllers/aiController.js";
 import { sendEmergencyAlert, sendTeamAlert } from "../config/emailService.js";
 
 const router = express.Router();
 const upload = multer({dest:"uploads/"});
 
-const JWT_SECRET = process.env.JWT_SECRET || 'aimea_secret';
+const JWT_SECRET = process.env.JWT_SECRET;
+
+const OVERPASS_URL = process.env.OVERPASS_API_URL;
+const OVERPASS_UA = process.env.OVERPASS_USER_AGENT;
+
+function haversineDistanceM(lat1, lon1, lat2, lon2) {
+	const R = 6371000;
+	const toRad = (d) => (d * Math.PI) / 180;
+	const dLat = toRad(lat2 - lat1);
+	const dLon = toRad(lon2 - lon1);
+	const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+	const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+	return R * c;
+}
+
+function elementLatLon(el) {
+	if (el.type === 'node' && el.lat != null && el.lon != null) {
+		return { lat: el.lat, lon: el.lon };
+	}
+	if (el.center && el.center.lat != null && el.center.lon != null) {
+		return { lat: el.center.lat, lon: el.center.lon };
+	}
+	return null;
+}
+
+function buildAddressFromTags(tags) {
+	if (!tags) return '';
+	if (tags['addr:full']) return String(tags['addr:full']);
+	const line1 = [tags['addr:housenumber'], tags['addr:street']].filter(Boolean).join(' ').trim();
+	const line2 = [tags['addr:city'] || tags['addr:town'] || tags['addr:village'], tags['addr:state'], tags['addr:postcode']]
+		.filter(Boolean)
+		.join(', ');
+	return [line1, line2].filter(Boolean).join(line1 && line2 ? ', ' : '') || '';
+}
+
+function firstPhone(tags) {
+	if (!tags) return '';
+	const raw =
+		tags.phone ||
+		tags['contact:phone'] ||
+		tags['phone:mobile'] ||
+		tags['contact:mobile'] ||
+		'';
+	if (!raw) return '';
+	const first = String(raw).split(/[;/|]/)[0].trim();
+	return first;
+}
+
+function firstEmail(tags) {
+	if (!tags) return '';
+	const raw = tags.email || tags['contact:email'] || '';
+	if (!raw) return '';
+	return String(raw).split(/[;\s|]/)[0].trim();
+}
 
 // middleware to verify JWT token
 export const verifyToken = (req, res, next) => {
@@ -110,6 +164,30 @@ router.put('/user', verifyToken, async (req, res) => {
 });
 
 router.post("/ai", verifyToken, upload.single("image"), aiMedicalAssistant);
+
+// Chat history routes
+router.get('/chat-history', verifyToken, async (req, res) => {
+  try {
+    const history = await ChatHistory.find({ userId: req.user.userId }).sort({ updatedAt: -1 });
+    res.json(history);
+  } catch (error) {
+    console.error('Error fetching chat history:', error);
+    res.status(500).json({ message: 'Unable to fetch chat history.', error: error.message });
+  }
+});
+
+router.get('/chat-history/:sessionId', verifyToken, async (req, res) => {
+  try {
+    const session = await ChatHistory.findOne({ _id: req.params.sessionId, userId: req.user.userId });
+    if (!session) {
+      return res.status(404).json({ message: 'Chat session not found.' });
+    }
+    res.json(session);
+  } catch (error) {
+    console.error('Error fetching chat session:', error);
+    res.status(500).json({ message: 'Unable to fetch chat session.', error: error.message });
+  }
+});
 
 // ==============================
 // EMERGENCY CONTACT ROUTES
@@ -273,6 +351,103 @@ router.post('/emergency', verifyToken, upload.single("image"), async (req, res) 
 	} catch (error) {
 		console.error('Error recording emergency:', error);
 		res.status(500).json({ message: 'Unable to record emergency.', error: error.message });
+	}
+});
+
+// Nearby hospitals / clinics (OpenStreetMap via Overpass; public for emergency SOS page)
+router.get('/nearby-hospitals', async (req, res) => {
+	try {
+		const lat = parseFloat(req.query.lat);
+		const lng = parseFloat(req.query.lng);
+		let radiusM = parseInt(String(req.query.radiusM || req.query.radius || '10000'), 10);
+
+		if (Number.isNaN(lat) || Number.isNaN(lng)) {
+			return res.status(400).json({ message: 'Query parameters lat and lng are required and must be numbers.' });
+		}
+		if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+			return res.status(400).json({ message: 'Coordinates are out of valid range.' });
+		}
+		if (Number.isNaN(radiusM) || radiusM < 1000) radiusM = 10000;
+		radiusM = Math.min(radiusM, 25000);
+
+		const query = `[out:json][timeout:25];
+(
+  node["amenity"="hospital"](around:${radiusM},${lat},${lng});
+  way["amenity"="hospital"](around:${radiusM},${lat},${lng});
+  node["amenity"="clinic"](around:${radiusM},${lat},${lng});
+  way["amenity"="clinic"](around:${radiusM},${lat},${lng});
+  node["healthcare"="hospital"](around:${radiusM},${lat},${lng});
+  way["healthcare"="hospital"](around:${radiusM},${lat},${lng});
+);
+out center tags;`;
+
+		const ac = new AbortController();
+		const t = setTimeout(() => ac.abort(), 28000);
+
+		const overRes = await fetch(OVERPASS_URL, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/x-www-form-urlencoded',
+				'User-Agent': OVERPASS_UA
+			},
+			body: `data=${encodeURIComponent(query)}`,
+			signal: ac.signal
+		});
+		clearTimeout(t);
+
+		if (!overRes.ok) {
+			return res.status(503).json({ message: 'Hospital directory service returned an error. Try again shortly.' });
+		}
+
+		const data = await overRes.json();
+		const elements = Array.isArray(data.elements) ? data.elements : [];
+
+		const seen = new Set();
+		const hospitals = [];
+
+		for (const el of elements) {
+			const pos = elementLatLon(el);
+			if (!pos) continue;
+			const tags = el.tags || {};
+			const name = (tags.name && String(tags.name).trim()) || 'Unnamed facility';
+			const dedupeKey = `${name.toLowerCase()}_${pos.lat.toFixed(4)}_${pos.lon.toFixed(4)}`;
+			if (seen.has(dedupeKey)) continue;
+			seen.add(dedupeKey);
+
+			const distanceM = haversineDistanceM(lat, lng, pos.lat, pos.lon);
+			const phone = firstPhone(tags);
+			const email = firstEmail(tags);
+			const address = buildAddressFromTags(tags);
+
+			hospitals.push({
+				osmType: el.type,
+				osmId: el.id,
+				name,
+				lat: pos.lat,
+				lon: pos.lon,
+				distanceM: Math.round(distanceM),
+				address,
+				phone: phone || null,
+				email: email || null,
+				amenity: tags.amenity || tags.healthcare || null
+			});
+		}
+
+		hospitals.sort((a, b) => a.distanceM - b.distanceM);
+		const limited = hospitals.slice(0, 15);
+
+		res.json({
+			radiusM,
+			count: limited.length,
+			hospitals: limited,
+			source: 'OpenStreetMap contributors (data may be incomplete; verify before travel.)'
+		});
+	} catch (error) {
+		if (error.name === 'AbortError') {
+			return res.status(504).json({ message: 'Hospital lookup timed out. Please try again.' });
+		}
+		console.error('nearby-hospitals error:', error);
+		res.status(500).json({ message: 'Unable to fetch nearby hospitals.', error: error.message });
 	}
 });
 
