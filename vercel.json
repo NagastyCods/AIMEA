@@ -23,13 +23,5 @@
       "src": "/.*",
       "dest": "public/index.html"
     }
-  ],
-  "env": {
-    "MONGODB_URI": "@mongodb_uri",
-    "JWT_SECRET": "@jwt_secret",
-    "OPENAI_API_KEY": "@openai_api_key",
-    "EMAIL_USER": "@email_user",
-    "EMAIL_PASSWORD": "@email_password",
-    "CORS_ORIGIN": "@cors_origin"
-  }
+  ]
 }
