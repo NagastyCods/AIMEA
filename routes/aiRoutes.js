@@ -1,8 +1,8 @@
 import express from "express";
 import multer from "multer";
-import path from 'path';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
+import { body, param, query, validationResult } from 'express-validator';
 import User from "../models/users.js";
 import EmergencyContact from "../models/emergencyContact.js";
 import EmergencyHistory from "../models/emergencyHistory.js";
@@ -11,12 +11,30 @@ import { aiMedicalAssistant } from "../controllers/aiController.js";
 import { sendEmergencyAlert, sendTeamAlert } from "../config/emailService.js";
 
 const router = express.Router();
-const upload = multer({dest:"uploads/"});
+const upload = multer({
+  dest: "uploads/",
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const allowed = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowed.includes(file.mimetype)) {
+      return cb(new Error('Only image files are allowed.'));
+    }
+    cb(null, true);
+  }
+});
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
 const OVERPASS_URL = process.env.OVERPASS_API_URL;
 const OVERPASS_UA = process.env.OVERPASS_USER_AGENT;
+
+const validate = (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(422).json({ errors: errors.array() });
+  }
+  next();
+};
 
 function haversineDistanceM(lat1, lon1, lat2, lon2) {
 	const R = 6371000;
@@ -68,21 +86,26 @@ function firstEmail(tags) {
 	return String(raw).split(/[;\s|]/)[0].trim();
 }
 
-// middleware to verify JWT token
-export const verifyToken = (req, res, next) => {
+const verifyToken = (req, res, next) => {
 	const token = req.headers['authorization']?.split(' ')[1];
-	if (!token) return res.status(401).json({message: 'No token provided.'});
+	if (!token) return res.status(401).json({ message: 'No token provided.' });
 	jwt.verify(token, JWT_SECRET, (err, decoded) => {
-		if(err) return res.status(403).json({message: 'invalid token.'});
+		if (err) return res.status(403).json({ message: 'Invalid token.' });
 		req.user = decoded;
 		next();
-	})
-}
+	});
+};
+export { verifyToken };
+
 // Register
-router.post('/auth/register', async (req, res) => {
+router.post('/auth/register',
+	body('username').trim().isLength({ min: 3, max: 32 }).withMessage('Username must be between 3 and 32 characters.'),
+	body('email').trim().isEmail().withMessage('A valid email is required.').normalizeEmail(),
+	body('password').isLength({ min: 8 }).withMessage('Password must be at least 8 characters long.'),
+	validate,
+	async (req, res) => {
 	try {
 		const { username, email, password } = req.body;
-		if (!username || !email || !password) return res.status(400).json({ message: 'All fields required.' });
 
 		const existingUsername = await User.findOne({ username });
 		if (existingUsername) return res.status(409).json({ message: 'Username already exists.' });
@@ -90,40 +113,33 @@ router.post('/auth/register', async (req, res) => {
 		const existingEmail = await User.findOne({ email });
 		if (existingEmail) return res.status(409).json({ message: 'Email already in use.' });
 
-		const user = new User({ username: username.trim(), email: email.trim(), password: password.trim() });
+		const user = new User({ username, email, password });
 		await user.save();
 
 		res.status(201).json({ message: 'Registration successful.' });
-	} catch (error){
-		res.status(500).json({message: 'Registration failed.', error: error.message});
+	} catch (error) {
+		res.status(500).json({ message: 'Registration failed.', error: error.message });
 	}
 });
 
 // Login
-router.post('/auth/login', async (req, res) => {
+router.post('/auth/login',
+	body('username').trim().notEmpty().withMessage('Username or email is required.'),
+	body('password').notEmpty().withMessage('Password is required.'),
+	validate,
+	async (req, res) => {
 	try {
 		const { username, password } = req.body;
-		const identifier = username?.trim();
-		const cleanPassword = password?.trim();
-		console.log('Login attempt for identifier:', identifier);
-		console.log('Password length:', cleanPassword?.length);
-		
-		if (!identifier || !cleanPassword) {
-			return res.status(400).json({ message: 'All fields required.' });
-		}
+		const identifier = username.trim();
+		const cleanPassword = password.trim();
 
 		const user = await User.findOne({ $or: [{ username: identifier }, { email: identifier }] });
-		console.log('User found:', !!user);
 		if (!user) return res.status(401).json({ message: 'Invalid credentials.' });
-		
-		console.log('Stored password hash:', user.password);
-		console.log('Attempting bcrypt compare...');
 
 		const match = await bcrypt.compare(cleanPassword, user.password);
-		console.log('Password match result:', match);
 		if (!match) return res.status(401).json({ message: 'Invalid credentials.' });
 
-		const token = jwt.sign({ username, userId: user._id }, JWT_SECRET, { expiresIn: '2h' });
+		const token = jwt.sign({ username: user.username, userId: user._id }, JWT_SECRET, { expiresIn: '2h' });
 		res.json({ token, message: 'Login successful.' });
 	} catch (error) {
 		console.error('Login error:', error);
@@ -142,15 +158,20 @@ router.get('/user', verifyToken, async (req, res) => {
 	}
 });
 
-router.put('/user', verifyToken, async (req, res) => {
+router.put('/user', verifyToken,
+	body('username').optional().trim().isLength({ min: 3, max: 32 }).withMessage('Username must be between 3 and 32 characters.'),
+	body('email').optional().trim().isEmail().withMessage('A valid email is required.').normalizeEmail(),
+	body('password').optional().isLength({ min: 8 }).withMessage('Password must be at least 8 characters long.'),
+	validate,
+	async (req, res) => {
 	try {
 		const { username, email, password } = req.body;
 		const user = await User.findById(req.user.userId);
 		if (!user) return res.status(404).json({ message: 'User not found.' });
 
-		if (username) user.username = username.trim();
-		if (email) user.email = email.trim();
-		if (password) user.password = password.trim();
+		if (username) user.username = username;
+		if (email) user.email = email;
+		if (password) user.password = password;
 
 		await user.save();
 		res.json({ message: 'Profile updated successfully.', username: user.username, email: user.email });
@@ -163,7 +184,11 @@ router.put('/user', verifyToken, async (req, res) => {
 	}
 });
 
-router.post("/ai", verifyToken, upload.single("image"), aiMedicalAssistant);
+router.post('/ai', verifyToken,
+	upload.single('image'),
+	body('message').optional().trim().isString().isLength({ max: 1000 }).withMessage('Message must be 1000 characters or fewer.'),
+	validate,
+	aiMedicalAssistant);
 
 // Chat history routes
 router.get('/chat-history', verifyToken, async (req, res) => {
@@ -176,7 +201,10 @@ router.get('/chat-history', verifyToken, async (req, res) => {
   }
 });
 
-router.get('/chat-history/:sessionId', verifyToken, async (req, res) => {
+router.get('/chat-history/:sessionId', verifyToken,
+	param('sessionId').isMongoId().withMessage('Valid session ID is required.'),
+	validate,
+	async (req, res) => {
   try {
     const session = await ChatHistory.findOne({ _id: req.params.sessionId, userId: req.user.userId });
     if (!session) {
@@ -205,14 +233,17 @@ router.get('/emergency-contacts', verifyToken, async (req, res) => {
 });
 
 // Add emergency contact
-router.post('/emergency-contacts', verifyToken, async (req, res) => {
+router.post('/emergency-contacts', verifyToken,
+	body('contactName').trim().notEmpty().withMessage('Contact name is required.').isLength({ max: 80 }),
+	body('phoneNumber').trim().notEmpty().withMessage('Phone number is required.'),
+	body('email').optional().trim().isEmail().withMessage('Valid email is required.').normalizeEmail(),
+	body('relationship').optional().isIn(['Family', 'Friend', 'Doctor', 'Caregiver', 'Other']).withMessage('Relationship must be one of the allowed values.'),
+	body('isPrimary').optional().isBoolean().toBoolean(),
+	validate,
+	async (req, res) => {
 	try {
 		const { contactName, phoneNumber, email, relationship, isPrimary } = req.body;
-		if (!contactName || !phoneNumber) {
-			return res.status(400).json({ message: 'Contact name and phone number required.' });
-		}
 
-		// If setting as primary, unset other primary contacts
 		if (isPrimary) {
 			await EmergencyContact.updateMany({ userId: req.user.userId }, { isPrimary: false });
 		}
@@ -235,7 +266,15 @@ router.post('/emergency-contacts', verifyToken, async (req, res) => {
 });
 
 // Update emergency contact
-router.put('/emergency-contacts/:contactId', verifyToken, async (req, res) => {
+router.put('/emergency-contacts/:contactId', verifyToken,
+	param('contactId').isMongoId().withMessage('Valid contact ID is required.'),
+	body('contactName').optional().trim().isLength({ max: 80 }),
+	body('phoneNumber').optional().trim().notEmpty().withMessage('Phone number may not be empty.'),
+	body('email').optional().trim().isEmail().withMessage('Valid email is required.').normalizeEmail(),
+	body('relationship').optional().isIn(['Family', 'Friend', 'Doctor', 'Caregiver', 'Other']).withMessage('Relationship must be valid.'),
+	body('isPrimary').optional().isBoolean().toBoolean(),
+	validate,
+	async (req, res) => {
 	try {
 		const { contactName, phoneNumber, email, relationship, isPrimary } = req.body;
 		const contact = await EmergencyContact.findById(req.params.contactId);
@@ -263,7 +302,10 @@ router.put('/emergency-contacts/:contactId', verifyToken, async (req, res) => {
 });
 
 // Delete emergency contact
-router.delete('/emergency-contacts/:contactId', verifyToken, async (req, res) => {
+router.delete('/emergency-contacts/:contactId', verifyToken,
+	param('contactId').isMongoId().withMessage('Valid contact ID is required.'),
+	validate,
+	async (req, res) => {
 	try {
 		const contact = await EmergencyContact.findById(req.params.contactId);
 
@@ -297,7 +339,16 @@ router.get('/emergency-history', verifyToken, async (req, res) => {
 });
 
 // Trigger emergency - save incident and notify contacts
-router.post('/emergency', verifyToken, upload.single("image"), async (req, res) => {
+router.post('/emergency', verifyToken, upload.single('image'),
+	body('symptoms').optional().trim().isLength({ max: 1000 }).withMessage('Symptoms must be 1000 characters or fewer.'),
+	body('userDescription').optional().trim().isLength({ max: 1500 }).withMessage('Description must be 1500 characters or fewer.'),
+	body('latitude').optional().isFloat({ min: -90, max: 90 }).withMessage('Latitude must be valid.').toFloat(),
+	body('longitude').optional().isFloat({ min: -180, max: 180 }).withMessage('Longitude must be valid.').toFloat(),
+	body('address').optional().trim().isLength({ max: 300 }).withMessage('Address must be 300 characters or fewer.'),
+	body('severity').optional().isIn(['Low', 'Medium', 'High', 'Critical']).withMessage('Severity must be Low, Medium, High, or Critical.'),
+	body('requestAmbulance').optional().isBoolean().toBoolean(),
+	validate,
+	async (req, res) => {
 	try {
 		const { symptoms, userDescription, latitude, longitude, address, severity, requestAmbulance } = req.body;
 		const user = await User.findById(req.user.userId);
@@ -355,7 +406,12 @@ router.post('/emergency', verifyToken, upload.single("image"), async (req, res) 
 });
 
 // Nearby hospitals / clinics (OpenStreetMap via Overpass; public for emergency SOS page)
-router.get('/nearby-hospitals', async (req, res) => {
+router.get('/nearby-hospitals',
+	query('lat').exists().isFloat({ min: -90, max: 90 }).withMessage('Valid latitude is required.').toFloat(),
+	query('lng').exists().isFloat({ min: -180, max: 180 }).withMessage('Valid longitude is required.').toFloat(),
+	query('radiusM').optional().isInt({ min: 1000, max: 25000 }).toInt(),
+	validate,
+	async (req, res) => {
 	try {
 		const lat = parseFloat(req.query.lat);
 		const lng = parseFloat(req.query.lng);
@@ -452,7 +508,10 @@ out center tags;`;
 });
 
 // Resolve emergency
-router.put('/emergency-history/:emergencyId/resolve', verifyToken, async (req, res) => {
+router.put('/emergency-history/:emergencyId/resolve', verifyToken,
+	param('emergencyId').isMongoId().withMessage('Valid emergency ID is required.'),
+	validate,
+	async (req, res) => {
 	try {
 		const emergency = await EmergencyHistory.findById(req.params.emergencyId);
 
