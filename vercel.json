@@ -16,12 +16,8 @@
       "dest": "server.js"
     },
     {
-      "src": "/uploads/(.*)",
-      "dest": "/uploads/$1"
-    },
-    {
-      "src": "/.*",
-      "dest": "public/index.html"
+      "src": "/(.*)",
+      "dest": "server.js"
     }
   ]
 }
