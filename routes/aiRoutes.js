@@ -2,6 +2,7 @@ import express from "express";
 import multer from "multer";
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
+import { uploadCloudinary as upload } from "../config/cloudinaryConfig.js";
 import { body, param, query, validationResult } from 'express-validator';
 import User from "../models/users.js";
 import EmergencyContact from "../models/emergencyContact.js";
@@ -11,17 +12,6 @@ import { aiMedicalAssistant } from "../controllers/aiController.js";
 import { sendEmergencyAlert, sendTeamAlert } from "../config/emailService.js";
 
 const router = express.Router();
-const upload = multer({
-  dest: "uploads/",
-  limits: { fileSize: 5 * 1024 * 1024 },
-  fileFilter: (req, file, cb) => {
-    const allowed = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-    if (!allowed.includes(file.mimetype)) {
-      return cb(new Error('Only image files are allowed.'));
-    }
-    cb(null, true);
-  }
-});
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -379,7 +369,8 @@ router.post('/emergency', verifyToken, upload.single('image'),
 		});
 
 		if (req.file) {
-			emergency.imageUrl = `/uploads/${req.file.filename}`;
+			emergency.imageUrl = req.file.secure_url;
+			// emergency.imageUrl = `/uploads/${req.file.filename}`;
 		}
 
 		await emergency.save();
