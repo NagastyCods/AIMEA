@@ -9,7 +9,7 @@ import EmergencyContact from "../models/emergencyContact.js";
 import EmergencyHistory from "../models/emergencyHistory.js";
 import ChatHistory from "../models/chatHistory.js";
 import { aiMedicalAssistant } from "../controllers/aiController.js";
-import { sendEmergencyAlert, sendTeamAlert } from "../config/emailService.js";
+import { sendContactMessage, sendEmergencyAlert, sendTeamAlert } from "../config/emailService.js";
 
 const router = express.Router();
 
@@ -86,6 +86,33 @@ const verifyToken = (req, res, next) => {
 	});
 };
 export { verifyToken };
+
+router.post('/contact',
+  body('name').trim().notEmpty().withMessage('Name is required.'),
+  body('email').trim().isEmail().withMessage('A valid email is required.').normalizeEmail(),
+  body('subject').trim().notEmpty().withMessage('Subject is required.'),
+  body('message').trim().notEmpty().withMessage('Message is required.'),
+  validate,
+  async (req, res) => {
+    try {
+      const { name, email, subject, message } = req.body;
+      const result = await sendContactMessage(name, email, subject, message);
+
+      if (!result.success) {
+        return res.status(500).json({ message: 'Unable to send your message right now.', error: result.error });
+      }
+
+      res.json({
+        message: 'Your message has been sent successfully.',
+        notificationType: 'contact-request',
+        recipient: process.env.EMERGENCY_TEAM_EMAIL || process.env.EMAIL_USER
+      });
+    } catch (error) {
+      console.error('Contact form error:', error);
+      res.status(500).json({ message: 'Unable to send your message right now.', error: error.message });
+    }
+  }
+);
 
 // Register
 router.post('/auth/register',

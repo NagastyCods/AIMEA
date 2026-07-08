@@ -3,13 +3,54 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+const emailUser = String(process.env.EMAIL_USER || '').trim();
+const emailPassword = String(process.env.EMAIL_PASSWORD || '').replace(/\s+/g, '');
+
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  host: 'smtp.gmail.com',
+  port: 587,
+  secure: false,
+  requireTLS: true,
   auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASSWORD
+    user: emailUser,
+    pass: emailPassword
   }
 });
+
+export const sendContactMessage = async (name, email, subject, message) => {
+  const recipient = process.env.EMERGENCY_TEAM_EMAIL || process.env.EMAIL_USER;
+  const mailOptions = {
+    from: `AIMEA Support <${emailUser}>`,
+    to: recipient,
+    replyTo: email,
+    subject: `🚨 Contact Request: ${subject}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; background-color: #f5f5f5; padding: 20px;">
+        <div style="background-color: #2a6af8; color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+          <h2 style="margin: 0;">📩 New Contact Request</h2>
+        </div>
+        <div style="background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+          <p><strong>From:</strong> ${name}</p>
+          <p><strong>Reply Email:</strong> ${email}</p>
+          <p><strong>Subject:</strong> ${subject}</p>
+          <p><strong>Message:</strong></p>
+          <p>${message.replace(/\n/g, '<br>')}</p>
+          <p style="margin-top: 20px; padding: 15px; background-color: #e7f3ff; border-radius: 5px;">
+            <strong>Action Required:</strong> Please respond to the sender as soon as possible.
+          </p>
+        </div>
+      </div>
+    `
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    return { success: true, message: 'Contact message sent successfully' };
+  } catch (error) {
+    console.error('Contact email sending error:', error);
+    return { success: false, error: error.message };
+  }
+};
 
 export const sendEmergencyAlert = async (contactEmail, userName, symptom, location, ambulanceRequest = false) => {
   const mailOptions = {

@@ -162,20 +162,60 @@ document.addEventListener("DOMContentLoaded", () => {
     const contactForm = document.querySelector("#contact-form");
 
     if (contactForm) {
-        contactForm.addEventListener("submit", (e) => {
+        contactForm.addEventListener("submit", async (e) => {
             e.preventDefault();
 
             const name = document.querySelector("#name").value.trim();
             const email = document.querySelector("#email").value.trim();
+            const subject = document.querySelector("#subject").value.trim();
             const message = document.querySelector("#message").value.trim();
 
-            if (!name || !email || !message) {
+            if (!name || !email || !subject || !message) {
                 alert("⚠ Please fill all fields before submitting.");
                 return;
             }
 
-            alert("✔ Message sent successfully!");
-            contactForm.reset();
+            const submitButton = contactForm.querySelector("button[type='submit']");
+            const originalText = submitButton?.textContent || "Send Message";
+            const statusMessage = document.createElement("div");
+            statusMessage.className = "form-status success";
+            statusMessage.style.marginTop = "12px";
+            statusMessage.style.color = "#2e7d32";
+            statusMessage.style.fontWeight = "600";
+            statusMessage.style.display = "none";
+            contactForm.appendChild(statusMessage);
+            if (submitButton) {
+                submitButton.disabled = true;
+                submitButton.textContent = "Sending...";
+            }
+
+            try {
+                const response = await fetch("/api/contact", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ name, email, subject, message })
+                });
+
+                const data = await response.json().catch(() => ({}));
+
+                if (!response.ok) {
+                    throw new Error(data.message || "Unable to send your message right now.");
+                }
+
+                statusMessage.textContent = "✔ Your message has been sent successfully!";
+                statusMessage.style.display = "block";
+                contactForm.reset();
+            } catch (error) {
+                console.error("Contact form error:", error);
+                statusMessage.textContent = `⚠ ${error.message}`;
+                statusMessage.style.color = "#c62828";
+                statusMessage.style.display = "block";
+            } finally {
+                if (submitButton) {
+                    submitButton.disabled = false;
+                    submitButton.textContent = originalText;
+                }
+            }
         });
     }
 

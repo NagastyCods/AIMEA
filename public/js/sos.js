@@ -280,7 +280,16 @@ document.addEventListener('DOMContentLoaded', () => {
       const userMessage = requestAmbulance
         ? 'Ambulance requested and emergency team notified.'
         : 'Emergency team notified. Contacting response unit.';
-      console.log(userMessage);
+      const successBanner = document.createElement('div');
+      successBanner.textContent = `✅ ${userMessage}`;
+      successBanner.style.marginTop = '10px';
+      successBanner.style.padding = '10px';
+      successBanner.style.borderRadius = '8px';
+      successBanner.style.background = '#e8f5e9';
+      successBanner.style.color = '#2e7d32';
+      successBanner.style.fontWeight = '600';
+      statusBox.parentElement?.appendChild(successBanner);
+      setTimeout(() => successBanner.remove(), 5000);
 
       // Reload history
       loadEmergencyHistory();
